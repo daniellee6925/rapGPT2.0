@@ -8,15 +8,15 @@ from gpt2 import GPT, GPTConfig
 # ------------------------------------------------------------------------------
 """Generate Parameters"""
 num_return_sequences = 5
-max_length = 30
+max_length = 100
 device = "cuda" if torch.cuda.is_available() else "cpu"
 # ------------------------------------------------------------------------------
-model = helper_functions.load_model(GPT, GPTConfig, "Models", "fine_tuned_gpt2")
+model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2")
 model.eval()
 model.to(device)
 
 enc = tiktoken.get_encoding("gpt2")
-tokens = enc.encode("It feels so empty without me")
+tokens = enc.encode("cute boy")
 tokens = torch.tensor(tokens, dtype=torch.long)  # (8, )
 tokens = tokens.unsqueeze(0).repeat(num_return_sequences, 1)  # (5, 8)
 x = tokens.to(device)

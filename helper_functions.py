@@ -123,7 +123,7 @@ def load_model(
     model_path = target_dir_path / f"{model_name}.pth"
     config_path = target_dir_path / f"{model_name}_config.pth"
 
-    # ✅ Mark config_class as safe for torch.load
+    # Mark config_class as safe for torch.load
     torch.serialization.add_safe_globals([config_class])
 
     # Load the config object
