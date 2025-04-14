@@ -27,8 +27,6 @@ def extract_lyrics(device):
     lyrics_file_name = "lyrics_Data.txt"
     lyrics = data["full_lyric"].fillna("").astype(str).str.lower()
 
-    lyrics = lyrics.apply(lambda x: re.sub(r"[^\w\s]", "", x))  # remove punctuation
-
     # Write lyrics to the text file, each lyric on a new line
     with open(output_file_path + lyrics_file_name, "w", encoding="utf-8") as f:
         for lyric in lyrics:
@@ -76,4 +74,4 @@ def extract_lyrics(device):
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # train_data, val_data, tokenizer = extract_lyrics(device)
-    # encoded_lyrics, tokenizer = extract_lyrics(device)
+    encoded_lyrics, tokenizer = extract_lyrics(device)
