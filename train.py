@@ -142,4 +142,4 @@ if ddp:
 # ------------------------------------------------------------------------------
 """Save model"""
 # helper_functions.save_model(model, "Models", "fine_tuned_gpt2")
-helper_functions.save_model(model, "Models", "pretrained_gpt2")
+helper_functions.save_model(model, "Models", "pretrained_large_gpt2")
