@@ -11,7 +11,7 @@ num_return_sequences = 5
 max_length = 100
 device = "cuda" if torch.cuda.is_available() else "cpu"
 # ------------------------------------------------------------------------------
-model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2")
+model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v2")
 model.eval()
 model.to(device)
 
@@ -23,9 +23,24 @@ x = tokens.to(device)
 
 helper_functions.set_seeds(1337)
 
+
+past_kv = None  # initialize cache
+
+
 while x.size(1) < max_length:
     with torch.no_grad():
-        logits, _ = model(x)  # (B, T, vocab_size)
+        if past_kv is None:
+            # First forward pass: input the full prompt
+            position_ids = torch.arange(0, x.size(1), device=x.device).unsqueeze(0)
+            logits, _ = model(x, position_ids=position_ids, use_cache=False)
+            # logits, _, past_kv = model(x, position_ids=position_ids, use_cache=True)
+        else:
+            # Subsequent passes: input only the last generated token
+            position_ids = torch.tensor([[x.size(1)]], device=x.device)
+            logits, _ = model(
+                x[:, -1:], position_ids=position_ids, past_kv=past_kv, use_cache=False
+            )
+
         # take the logits at the last location
         logits = logits[:, -1, :]  # (B, vocab_size)
         probs = F.softmax(logits, dim=-1)

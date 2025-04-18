@@ -10,9 +10,9 @@ import inspect
 class GPTConfig:
     block_size: int = 1024  # max sequence length
     vocab_size: int = 50257  # number of tokens: 50,000 BPE merges + 256 bytes tokens + 1 <|endoftext|> token
-    n_layer: int = 36  # number of layers
-    n_head: int = 20  # number of heads
-    n_embd: int = 1280  # embedding dimension
+    n_layer: int = 12  # number of layers
+    n_head: int = 12  # number of heads
+    n_embd: int = 768  # embedding dimension
 
 
 class CausalSelfAttention(nn.Module):
@@ -36,33 +36,46 @@ class CausalSelfAttention(nn.Module):
         # Save config values for number of heads and embedding size
         self.n_head = config.n_head
         self.n_embd = config.n_embd
+        self.head_dim = config.n_embd // config.n_head
 
-    def forward(self, x):
-        # B: batch size, T: sequence length, C: embedding dimension
-        B, T, C = x.size()  # (B, T, 3 * C)
+    def forward(self, x, past_kv=None, use_cache=False):
+        B, T, C = x.size()
 
-        # Project the input x to get concatenated Q, K, V tensors
+        # Linear projection → (B, T, 3C)
         qkv = self.c_attn(x)
+        q, k, v = qkv.split(self.n_embd, dim=2)
 
-        # Split the last dimension into separate Q, K, V
-        q, k, v = qkv.split(self.n_embd, dim=2)  # Each has shape (B, T, C)
-
-        # New shape: (B, T, n_head, head_dim) → (B, n_head, T, head_dim)
-        k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        # Reshape and transpose for multi-head attention
+        k = k.view(B, T, self.n_head, C // self.n_head).transpose(
+            1, 2
+        )  # (B, nh, T, hs)
         q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
         v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
 
-        # FLASH ATTENTION
-        # Apply scaled dot-product attention with causal masking
-        y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        if past_kv is not None:
+            past_k, past_v = past_kv
+            k = torch.cat((past_k, k), dim=2)
+            v = torch.cat((past_v, v), dim=2)
 
-        # contiguous creates new memory in pytorch
-        # transpose do not change the underlying memory.
+        # Save new present for caching
+        present = (k, v) if use_cache else None
+        L = k.size(2)  # total length of K/V after cache
+        S = q.size(2)  # current input length
+
+        # Create custom causal mask for query length S and key length L
+        mask = torch.full((S, L), float("-inf"), device=x.device)
+        mask.triu_(1)  # upper triangular
+        mask = mask.unsqueeze(0).unsqueeze(0)  # (1, 1, S, L)
+        mask = mask.expand(B, self.n_head, S, L)  # match q/k/v shape
+
+        # Scaled dot-product attention (causal)
+        y = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
+
+        # Merge heads
         y = y.transpose(1, 2).contiguous().view(B, T, C)
-
-        # Project back to original embedding size
         y = self.c_proj(y)
-        return y
+
+        return (y, present) if use_cache else y
 
 
 class MLP(nn.Module):
@@ -90,12 +103,16 @@ class Block(nn.Module):
         self.ln_2 = nn.LayerNorm(config.n_embd)
         self.mlp = MLP(config)
 
-    def forward(self, x):
-        # layer norm -> attn -> + residual connection
-        # layer norm -> mlp -> + residual connection
-        x = x + self.attn(self.ln_1(x))
+    def forward(self, x, past_kv=None, use_cache=False):
+        if use_cache:
+            attn_out, present = self.attn(self.ln_1(x), past_kv=past_kv, use_cache=True)
+            x = x + attn_out
+        else:
+            x = x + self.attn(self.ln_1(x))
+            present = None
+
         x = x + self.mlp(self.ln_2(x))
-        return x
+        return (x, present) if use_cache else x
 
 
 class GPT(nn.Module):
@@ -135,7 +152,9 @@ class GPT(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, idx, targets=None):
+    def forward(
+        self, idx, targets=None, position_ids=None, past_kv=None, use_cache=False
+    ):
         """forward pass"""
         # idx has shape (B, T)
         B, T = idx.shape
@@ -144,20 +163,40 @@ class GPT(nn.Module):
         )
 
         # forward the token and positional embeddings
-        pos = torch.arange(0, T, dtype=torch.long, device=idx.device)  # shape T
-        pos_emb = self.transformer.wpe(pos)  # (T, embd)
-        tok_emb = self.transformer.wte(idx)  # (B, T, embd)
-        x = pos_emb + tok_emb  # (B, T, embd)
+        if position_ids is None:
+            past_len = 0 if past_kv is None else past_kv[0][0].size(2)
+            position_ids = (
+                torch.arange(
+                    past_len, past_len + T, dtype=torch.long, device=idx.device
+                )
+                .unsqueeze(0)
+                .expand(B, -1)
+            )  # (B, T)
 
-        # forward the blocks of the transformer
-        for block in self.transformer.h:
-            x = block(x)
+        tok_emb = self.transformer.wte(idx)  # (B, T, embd)
+        pos_emb = self.transformer.wpe(position_ids)  # (B, T, embd)
+        x = tok_emb + pos_emb
+
+        presents = []
+        if past_kv is None:
+            past_kv = [None] * len(self.transformer.h)
+
+        for i, block in enumerate(self.transformer.h):
+            out = block(x, past_kv=past_kv[i], use_cache=use_cache)
+            if use_cache:
+                x, present = out
+                presents.append(present)
+            else:
+                x = out
+
         # forward the final layernorm and classifier
         x = self.transformer.ln_f(x)  # (B, T, n_embd)
         logits = self.lm_head(x)  # (B, T, vocab_size)
         loss = None
         if targets is not None:  # (B*T, vocab_size)
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+        if use_cache:
+            return logits, loss, presents
         return logits, loss
 
     @classmethod
