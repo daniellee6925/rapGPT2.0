@@ -29,7 +29,7 @@ weight_decay = 0.1
 learning_rate = 6e-4
 
 # training steps
-max_steps = 500
+max_steps = 200
 warmup_steps = int(max_steps * 0.10)  # 10% of max_steps
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
 # ------------------------------------------------------------------------------
@@ -38,11 +38,21 @@ helper_functions.set_seeds(1337)
 # ------------------------------------------------------------------------------
 """Create Dataloaders"""
 train_loader = DataloaderLite(
-    B=B, T=T, process_rank=ddp_rank, num_processes=ddp_world_size, split="train"
+    B=B,
+    T=T,
+    process_rank=ddp_rank,
+    num_processes=ddp_world_size,
+    split="train",
+    file_path="Data/lyrics_Data.txt",
 )
 
 val_loader = DataloaderLite(
-    B=B, T=T, process_rank=ddp_rank, num_processes=ddp_world_size, split="val"
+    B=B,
+    T=T,
+    process_rank=ddp_rank,
+    num_processes=ddp_world_size,
+    split="val",
+    file_path="Data/lyrics_Data.txt",
 )
 # ------------------------------------------------------------------------------
 if master_process:
@@ -50,7 +60,6 @@ if master_process:
     print(f"=> calculated gradient accumulated steps: {grad_accum_steps}")
 # use TF 32
 torch.set_float32_matmul_precision("high")
-
 # ------------------------------------------------------------------------------
 """Create Model"""
 
@@ -142,4 +151,4 @@ if ddp:
 # ------------------------------------------------------------------------------
 """Save model"""
 # helper_functions.save_model(model, "Models", "fine_tuned_gpt2")
-helper_functions.save_model(model, "Models", "pretrained_large_gpt2")
+helper_functions.save_model(model, "Models", "pretrained_gpt2_v2")
