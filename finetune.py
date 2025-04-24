@@ -3,12 +3,11 @@ import helper_functions
 import tiktoken
 import time
 from gpt2 import GPT, GPTConfig
-from data_loader_custom import DataloaderLite
+from data_loader import DataloaderLite
 import torch.distributed as dist
 from torch.distributed import destroy_process_group
 from torch.nn.parallel import DistributedDataParallel as DDP
 from lora import LoraModel, LoraConfig
-from transformers import GPT2Tokenizer
 
 # ------------------------------------------------------------------------------
 """Setup DDP if poosible"""
@@ -32,7 +31,7 @@ weight_decay = 0.01
 learning_rate = 2e-4
 
 # training steps
-max_steps = 10
+max_steps = 200
 warmup_steps = int(max_steps * 0.10)  # 10% of max_steps
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
 
@@ -55,7 +54,7 @@ train_loader = DataloaderLite(
     process_rank=ddp_rank,
     num_processes=ddp_world_size,
     split="train",
-    file_path="Data/artist_lyrics.txt",
+    file_path="Data/Eminem_lyrics.txt",
 )
 val_loader = DataloaderLite(
     B=B,
@@ -63,7 +62,7 @@ val_loader = DataloaderLite(
     process_rank=ddp_rank,
     num_processes=ddp_world_size,
     split="val",
-    file_path="Data/artist_lyrics.txt",
+    file_path="Data/Eminem_lyrics.txt",
 )
 # ------------------------------------------------------------------------------
 if master_process:
@@ -77,8 +76,7 @@ torch.set_float32_matmul_precision("high")
 model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v2")
 model = model.to(device)
 # enc = tiktoken.get_encoding("gpt2")
-tokenizer = GPT2Tokenizer.from_pretrained("custom_gpt2_tokenizer")
-model.resize_token_embeddings(len(tokenizer))
+enc = tiktoken.get_encoding("gpt2")
 
 # user LoRA Model
 lora_config = LoraConfig(
