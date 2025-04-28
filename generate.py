@@ -4,6 +4,7 @@ import helper_functions
 import tiktoken
 from torch.nn import functional as F
 from gpt2 import GPT, GPTConfig
+from safetensors.torch import load_file
 
 # ------------------------------------------------------------------------------
 """Generate Parameters"""
@@ -11,12 +12,22 @@ num_return_sequences = 5
 max_length = 100
 device = "cuda" if torch.cuda.is_available() else "cpu"
 # ------------------------------------------------------------------------------
-model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v2")
+"""Load Pretrained Model"""
+# model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v2")
+# model.eval()
+# model.to(device)
+# ------------------------------------------------------------------------------
+"""Load Finetuned Model"""
+model = GPT(GPTConfig)
+state_dict = load_file("Models/Finetuned_by_artists_GPT2.pth")
+model.load_state_dict(state_dict, strict=False)
+model.lm_head.weight = model.transformer.wte.weight  # weight tying
+model.to(device=device)
 model.eval()
-model.to(device)
 
+prompt = "It feels so empty"
 enc = tiktoken.get_encoding("gpt2")
-tokens = enc.encode("cute boy")
+tokens = enc.encode(prompt)
 tokens = torch.tensor(tokens, dtype=torch.long)  # (8, )
 tokens = tokens.unsqueeze(0).repeat(num_return_sequences, 1)  # (5, 8)
 x = tokens.to(device)
@@ -25,7 +36,6 @@ helper_functions.set_seeds(1337)
 
 
 past_kv = None  # initialize cache
-
 
 while x.size(1) < max_length:
     with torch.no_grad():

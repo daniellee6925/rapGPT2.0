@@ -172,4 +172,4 @@ if ddp:
 
 # ------------------------------------------------------------------------------
 """Save model"""
-(model).save_model(path="Models/Finetuned_by_artists_GPT2.pth", merge_weights=True)
+(model).save_model(path="Models/Finetuned_Eminem_GPT2.pth", merge_weights=True)
