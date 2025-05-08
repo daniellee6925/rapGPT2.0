@@ -1,17 +1,17 @@
 """
-This is a python script for extracting lyric data for pretrainig
+This is a python script for extracting lyric data for pretraining
 """
 
 import pandas as pd
 
 # import utils
 # import train_tokens
-import re
+# import re
 import torch
 from transformers import GPT2Tokenizer
 
 
-def extract_lyrics(device):
+def extract_lyrics():
     # read in csv data using pandas
     PATH = "Data/scrapped_lyrics.csv"
     data = pd.read_csv(
@@ -72,6 +72,4 @@ def extract_lyrics(device):
 
 
 if __name__ == "__main__":
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    # train_data, val_data, tokenizer = extract_lyrics(device)
-    encoded_lyrics, tokenizer = extract_lyrics(device)
+    encoded_lyrics, tokenizer = extract_lyrics()
