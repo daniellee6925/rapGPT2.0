@@ -9,19 +9,32 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 import torch
 
 # Load your dataset (replace with your own CSV path)
-dataset = load_dataset("csv", data_files={"train": "train.csv", "test": "test.csv"})
+dataset = load_dataset(
+    "csv",
+    data_files={
+        "train": "Data/classifier_train.csv",
+        "test": "Data/classifier_test.csv",
+    },
+)
 
+
+# -------------------------------------------------------------------------------
+"""Apply tokenization function to every function in dataset"""
 # Tokenizer
 tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
 
 
+# Tokenize function, with padding (all seq in batch same length) and truncation to maximum input length
 def tokenize(batch):
     return tokenizer(batch["text"], padding=True, truncation=True)
 
 
+# apply Tokenize function to by batches in dataset
 dataset = dataset.map(tokenize, batched=True)
 
+
 # Model
+# faster and smaller BERT model trained on lowercase only.
 model = AutoModelForSequenceClassification.from_pretrained(
     "distilbert-base-uncased", num_labels=2
 )
@@ -41,10 +54,9 @@ def compute_metrics(pred):
 # Training args
 training_args = TrainingArguments(
     output_dir="./results",
-    evaluation_strategy="epoch",
     per_device_train_batch_size=8,
     per_device_eval_batch_size=8,
-    num_train_epochs=3,
+    num_train_epochs=1,
     weight_decay=0.01,
     logging_dir="./logs",
 )
@@ -62,20 +74,5 @@ trainer = Trainer(
 # Train
 trainer.train()
 
-
-def predict_eminem_style(texts):
-    inputs = tokenizer(texts, return_tensors="pt", padding=True, truncation=True)
-    with torch.no_grad():
-        logits = model(**inputs).logits
-    probs = torch.softmax(logits, dim=1)
-    return probs[:, 1].tolist()  # Eminem class probability
-
-
-generated_lyrics = [
-    "Snap back to reality, oh there goes gravity...",
-    "I’m just a product of Slick Rick and Onyx, told 'em lick the balls...",
-]
-
-scores = predict_eminem_style(generated_lyrics)
-for line, score in zip(generated_lyrics, scores):
-    print(f"{score:.2f} – {line}")
+model.save_pretrained("Models/eminem_classifier_model")
+tokenizer.save_pretrained("Models/eminem_classifier_model")

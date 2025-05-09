@@ -31,7 +31,7 @@ weight_decay = 0.01
 learning_rate = 2e-4
 
 # training steps
-max_steps = 200
+max_steps = 100
 warmup_steps = int(max_steps * 0.10)  # 10% of max_steps
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
 
@@ -73,7 +73,7 @@ torch.set_float32_matmul_precision("high")
 # ------------------------------------------------------------------------------
 """Create Model"""
 # Load pretrained GPT2 model and tokenizer
-model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v2")
+model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v1")
 model = model.to(device)
 # enc = tiktoken.get_encoding("gpt2")
 enc = tiktoken.get_encoding("gpt2")

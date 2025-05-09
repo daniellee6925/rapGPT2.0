@@ -1,0 +1,4 @@
+Models/
+Data/
+custom_gpt2_tokenizer/
+.venv

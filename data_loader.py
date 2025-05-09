@@ -3,13 +3,14 @@ import tiktoken
 
 
 class DataloaderLite:
-    def __init__(self, B, T, process_rank, num_processes, split):
+    def __init__(self, B, T, process_rank, num_processes, split, file_path):
         self.B = B
         self.T = T
         self.process_rank = process_rank
         self.num_processes = num_processes
-        with open("lyrics_data.txt", "r") as f:
+        with open(file_path, "r") as f:
             text = f.read()
+
         enc = tiktoken.get_encoding("gpt2")
         tokens = enc.encode(text)
 

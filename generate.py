@@ -13,19 +13,20 @@ max_length = 100
 device = "cuda" if torch.cuda.is_available() else "cpu"
 # ------------------------------------------------------------------------------
 """Load Pretrained Model"""
-# model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v2")
-# model.eval()
-# model.to(device)
+model = helper_functions.load_model(GPT, GPTConfig, "Models", "pretrained_gpt2_v1")
+model.eval()
+model.to(device)
 # ------------------------------------------------------------------------------
 """Load Finetuned Model"""
-model = GPT(GPTConfig)
-state_dict = load_file("Models/Finetuned_by_artists_GPT2.pth")
-model.load_state_dict(state_dict, strict=False)
-model.lm_head.weight = model.transformer.wte.weight  # weight tying
-model.to(device=device)
-model.eval()
-
-prompt = "It feels so empty"
+# model = GPT(GPTConfig)
+# state_dict = load_file("Models/pretrained_gpt2_v2.pth")
+# model.load_state_dict(state_dict, strict=False)
+# model.lm_head.weight = model.transformer.wte.weight  # weight tying
+# model.to(device=device)
+# model.eval()
+# ------------------------------------------------------------------------------
+"""Get Tokenizer"""
+prompt = "What's up"
 enc = tiktoken.get_encoding("gpt2")
 tokens = enc.encode(prompt)
 tokens = torch.tensor(tokens, dtype=torch.long)  # (8, )

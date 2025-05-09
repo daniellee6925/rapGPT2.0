@@ -101,7 +101,7 @@ def save_model(model: torch.nn.Module, target_dir: str, model_name: str):
     # save the model state_dict()
     print(f"[INFO] Saving model to: {model_save_path}")
     torch.save(obj=model.state_dict(), f=model_save_path)
-    torch.save(obj=model.config, f=config_save_path)
+    torch.save(obj=model.config.__dict__, f=config_save_path)
 
 
 def load_model(
@@ -126,8 +126,11 @@ def load_model(
     # Mark config_class as safe for torch.load
     torch.serialization.add_safe_globals([config_class])
 
-    # Load the config object
-    config = torch.load(config_path, weights_only=False)
+    # Load config dictionary and reconstruct config object
+    config_dict = torch.load(config_path)
+    config = config_class()
+    for k, v in config_dict.items():
+        setattr(config, k, v)
 
     # Instantiate the model with the loaded config
     model = model_class(config)
@@ -162,7 +165,7 @@ for (name1, param1), (name2, param2) in zip(
     else:
         param1_to_compare = param1  # Use original parameter
     if not torch.allclose(param1_to_compare, param2, atol=1e-6):
-        print(f"🚨 Mismatch in {name1}")
+        print(f"Mismatch in {name1}")
     else:
-        print(f"✅ {name1} matches!")
+        print(f"{name1} matches!")
 """

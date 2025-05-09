@@ -299,3 +299,20 @@ class GPT(nn.Module):
             optim_groups, lr=learning_rate, betas=(0.9, 0.95), eps=1e-8
         )
         return optimizer
+
+    def resize_token_embeddings(self, new_vocab_size):
+        old_emb = self.transformer.wte
+        old_vocab_size, emb_dim = old_emb.weight.size()
+
+        if new_vocab_size == old_vocab_size:
+            return  # no change needed
+
+        # Create new embedding layer
+        new_emb = torch.nn.Embedding(new_vocab_size, emb_dim)
+        new_emb.weight.data[:old_vocab_size] = old_emb.weight.data
+
+        self.transformer.wte = new_emb
+        self.lm_head = torch.nn.Linear(emb_dim, new_vocab_size, bias=False)
+
+        # Tie weights if needed
+        self.lm_head.weight = self.transformer.wte.weight
