@@ -25,13 +25,13 @@ assert total_batch_size % (B * T * ddp_world_size) == 0, (
 )
 
 # learning rates
-max_lr = 2e-4
+max_lr = 5e-5
 min_lr = max_lr * 0.1  # 10% of max lr
 weight_decay = 0.01
-learning_rate = 2e-4
+learning_rate = 5e-5
 
 # training steps
-max_steps = 100
+max_steps = 200
 warmup_steps = int(max_steps * 0.10)  # 10% of max_steps
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
 
@@ -101,6 +101,7 @@ optimizer = raw_model.configure_optimizers(
 )
 # ------------------------------------------------------------------------------
 """Start Training Loop"""
+
 for step in range(max_steps):
     t0 = time.time()
 

@@ -29,7 +29,7 @@ weight_decay = 0.1
 learning_rate = 6e-4
 
 # training steps
-max_steps = 100
+max_steps = 50
 warmup_steps = int(max_steps * 0.10)  # 10% of max_steps
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
 # ------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ train_loader = DataloaderLite(
     process_rank=ddp_rank,
     num_processes=ddp_world_size,
     split="train",
-    file_path="Data/lyrics_Data.txt",
+    file_path="Data/Eminem_lyrics.txt",
 )
 
 val_loader = DataloaderLite(
@@ -52,7 +52,7 @@ val_loader = DataloaderLite(
     process_rank=ddp_rank,
     num_processes=ddp_world_size,
     split="val",
-    file_path="Data/lyrics_Data.txt",
+    file_path="Data/Eminem_lyrics.txt",
 )
 # ------------------------------------------------------------------------------
 if master_process:
@@ -151,4 +151,4 @@ if ddp:
 # ------------------------------------------------------------------------------
 """Save model"""
 # helper_functions.save_model(model, "Models", "fine_tuned_gpt2")
-helper_functions.save_model(model, "Models", "pretrained_gpt2_v1")
+helper_functions.save_model(model, "Models", "Finetuned_Eminem_GPT2_v2")

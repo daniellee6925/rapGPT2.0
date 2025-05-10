@@ -21,7 +21,7 @@ def predict_eminem_style(texts):
 generated_lyrics = [
     "Snap back to reality, oh there goes gravity...",
     "I’m just a product of Slick Rick and Onyx, told 'em lick the balls...",
-    "i just wanna chill got a sack for us to roll married to the money introduced her to my stove",
+    "i just lay here and watch tv or sit and listen to just about nothing i put out the whitest school in town put out the worst",
     "and i got this sewed up remy boyz they know us",
 ]
 
