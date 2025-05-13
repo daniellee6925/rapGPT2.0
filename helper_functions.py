@@ -105,7 +105,11 @@ def save_model(model: torch.nn.Module, target_dir: str, model_name: str):
 
 
 def load_model(
-    model_class: torch.nn.Module, config_class, target_dir: str, model_name: str
+    model_class: torch.nn.Module,
+    config_class,
+    target_dir: str,
+    model_name: str,
+    strict: bool = True,
 ):
     """
     Loads a PyTorch model and its configuration from a target directory.
@@ -115,6 +119,7 @@ def load_model(
         config_class: The config class used to construct the model (e.g., GPTConfig)
         target_dir: Directory where the model and config are saved
         model_name: Base name of the model files (without .pth extension)
+        strict: boolean for strict loading (False for qunatized model)
 
     Returns:
         model: The PyTorch model with loaded weights
@@ -136,7 +141,7 @@ def load_model(
     model = model_class(config)
 
     # Load model weights
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path), strict=strict)
 
     print(f"[INFO] Loaded model from: {model_path}")
     return model

@@ -316,3 +316,45 @@ class GPT(nn.Module):
 
         # Tie weights if needed
         self.lm_head.weight = self.transformer.wte.weight
+
+    def generate(self, x, max_length=100, num_return_sequences=1):
+        past_kv = None  # initialize cache
+
+        while x.size(1) < max_length:
+            with torch.no_grad():
+                if past_kv is None:
+                    # First forward pass: input the full prompt
+                    position_ids = torch.arange(
+                        0, x.size(1), device=x.device
+                    ).unsqueeze(0)
+                    logits, _ = self.forward(
+                        x, position_ids=position_ids, use_cache=False
+                    )
+                    # logits, _, past_kv = model(x, position_ids=position_ids, use_cache=True)
+                else:
+                    # Subsequent passes: input only the last generated token
+                    position_ids = torch.tensor([[x.size(1)]], device=x.device)
+                    logits, _ = self.forward(
+                        x[:, -1:],
+                        position_ids=position_ids,
+                        past_kv=past_kv,
+                        use_cache=False,
+                    )
+                # take the logits at the last location
+                logits = logits[:, -1, :]  # (B, vocab_size)
+                probs = F.softmax(logits, dim=-1)
+                # do top-k sampling of 50
+                topk_probs, topk_indices = torch.topk(probs, 50, dim=-1)  # (5, 50)
+                # select a token from the top k probs
+                ix = torch.multinomial(topk_probs, 1)  # (B, 1)
+                # gather the corresponding indices
+                xcol = torch.gather(topk_indices, -1, ix)  # (B, 1)
+                # append to sequence
+                x = torch.cat((x, xcol), dim=1)  # (B, i+1)
+                # will have (5, 30) at the end of while loop
+
+        generated_texts = []
+        for i in range(num_return_sequences):
+            tokens = x[i, :max_length].tolist()
+            generated_texts.append(tokens)
+        return generated_texts

@@ -22,7 +22,7 @@ generated_lyrics = [
     "Snap back to reality, oh there goes gravity...",
     "I’m just a product of Slick Rick and Onyx, told 'em lick the balls...",
     "i just lay here and watch tv or sit and listen to just about nothing i put out the whitest school in town put out the worst",
-    "and i got this sewed up remy boyz they know us",
+    "whether it's on the steps getting to pepp's garden hose stuck in the studio sittin' back with nate",
 ]
 
 # compute scores

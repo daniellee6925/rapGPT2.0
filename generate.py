@@ -8,9 +8,10 @@ from safetensors.torch import load_file
 
 # ------------------------------------------------------------------------------
 """Generate Parameters"""
-num_return_sequences = 5
+num_return_sequences = 1
 max_length = 100
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cpu"
+# device = "cuda" if torch.cuda.is_available() else "cpu"
 # ------------------------------------------------------------------------------
 """Load Pretrained Model"""
 model = helper_functions.load_model(
@@ -35,8 +36,18 @@ tokens = torch.tensor(tokens, dtype=torch.long)  # (8, )
 tokens = tokens.unsqueeze(0).repeat(num_return_sequences, 1)  # (5, 8)
 x = tokens.to(device)
 
-helper_functions.set_seeds(1337)
+helper_functions.set_seeds(9090)
 
+generated_tokens = model.generate(x, max_length=100, num_return_sequences=1)
+
+decoded = enc.decode(generated_tokens[0])
+
+print("Generated text:", decoded)
+
+
+import sys
+
+sys.exit()
 
 past_kv = None  # initialize cache
 
