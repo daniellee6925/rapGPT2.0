@@ -2,7 +2,6 @@
 import torch
 import helper_functions
 import tiktoken
-from torch.nn import functional as F
 from gpt2 import GPT, GPTConfig
 from safetensors.torch import load_file
 
@@ -36,7 +35,7 @@ tokens = torch.tensor(tokens, dtype=torch.long)  # (8, )
 tokens = tokens.unsqueeze(0).repeat(num_return_sequences, 1)  # (5, 8)
 x = tokens.to(device)
 
-helper_functions.set_seeds(9090)
+# helper_functions.set_seeds(9090)
 
 generated_tokens = model.generate(
     x, max_length=100, num_return_sequences=1, temperature=0.9, p=0.9
