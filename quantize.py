@@ -54,7 +54,9 @@ def measure_inference_time(model, prompt, device, num_runs=10):
     start_time = time.time()
     for _ in range(num_runs):
         with torch.no_grad():
-            _ = model(tokens)
+            _ = model.generate(
+                tokens, max_length=100, num_return_sequences=1, temperature=0.9, p=0.9
+            )
     avg_inference_time = (
         time.time() - start_time
     ) / num_runs  # time per inference in seconds

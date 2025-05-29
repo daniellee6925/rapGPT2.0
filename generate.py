@@ -9,13 +9,11 @@ from safetensors.torch import load_file
 """Generate Parameters"""
 num_return_sequences = 1
 max_length = 100
-device = "cpu"
-# device = "cuda" if torch.cuda.is_available() else "cpu"
+prompt = "It feels so empty without me"
+device = "cuda" if torch.cuda.is_available() else "cpu"
 # ------------------------------------------------------------------------------
 """Load Pretrained Model"""
-model = helper_functions.load_model(
-    GPT, GPTConfig, "Models", "Finetuned_Eminem_GPT2_v2"
-)
+model = helper_functions.load_model(GPT, GPTConfig, "Models", "GPT2_final")
 model.eval()
 model.to(device)
 # ------------------------------------------------------------------------------
@@ -28,7 +26,6 @@ model.to(device)
 # model.eval()
 # ------------------------------------------------------------------------------
 """Get Tokenizer"""
-prompt = "It feels so empty without me"
 enc = tiktoken.get_encoding("gpt2")
 tokens = enc.encode(prompt)
 tokens = torch.tensor(tokens, dtype=torch.long)  # (8, )

@@ -29,7 +29,7 @@ weight_decay = 0.1
 learning_rate = 6e-4
 
 # training steps
-max_steps = 50
+max_steps = 200
 warmup_steps = int(max_steps * 0.10)  # 10% of max_steps
 grad_accum_steps = total_batch_size // (B * T * ddp_world_size)
 # ------------------------------------------------------------------------------
@@ -63,8 +63,7 @@ torch.set_float32_matmul_precision("high")
 # ------------------------------------------------------------------------------
 """Create Model"""
 
-# model = GPT(GPTConfig(vocab_size=50304))  # set vocab size to a 'nice' number
-model = GPT.from_pretrained("gpt2")
+model = GPT(GPTConfig(vocab_size=50304))  # set vocab size to a 'nice' number
 model.to(device)
 enc = tiktoken.get_encoding("gpt2")
 # model = torch.compile(model)
@@ -150,5 +149,4 @@ if ddp:
 
 # ------------------------------------------------------------------------------
 """Save model"""
-# helper_functions.save_model(model, "Models", "fine_tuned_gpt2")
-helper_functions.save_model(model, "Models", "Finetuned_Eminem_GPT2_v2")
+helper_functions.save_model(model, "Models", "GPT2_Final")

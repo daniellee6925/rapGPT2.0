@@ -1,6 +1,9 @@
 # RapGPT 2.0: GPT-2 based Rap Lyric Generator
 
-RapGPT is a pre-trained & fine-tuned GPT-2 model designed to generate original rap lyrics similar to Eminem's Lyric style based on user prompts. Whether you're writing your next mixtape or experimenting with AI-generated verses, RapGPT has your back.
+RapGPT is a pre-trained & fine-tuned GPT-2 model designed to generate original rap lyrics similar to Eminem's Lyric style based on user prompts. This is an improved version of [rapGPT 1.0](https://github.com/daniellee6925/rapGPT) which is a much smaller bigram model. This project was created for educational purposes, with the goal of learning the full end-to-end lifecycle of large language model (LLM) development—including data collection, pre-training, parameter-efficient fine-tuning (PEFT), model evaluation, and deployment.
+
+If you'd like to try the final product, you can access it here: [www.eminemgpt.com](www.eminemgpt.com])
+
 
 ---
 
@@ -8,7 +11,7 @@ RapGPT is a pre-trained & fine-tuned GPT-2 model designed to generate original r
 
 - Prompt-based rap lyric generation
 - Adjustable creativity (temperature, top-k, top-p)
-- Pre-trained GPT-2 Model (124M) on 17273 songs from 226 artists
+- Pre-trained GPT-2 Model (124M) on 17,273 songs (~25M tokens) from 226 artists
 - Fine-tuned GPT-2 model trained on Eminmen rap lyrics
 - FastAPI backend and React/Next.js frontend with live generation
 - Text-to-Speech feature using ElevenLabs API
@@ -17,71 +20,122 @@ RapGPT is a pre-trained & fine-tuned GPT-2 model designed to generate original r
 ## Installation
 
 Install the required dependencies using pip:
+`pip install torch numpy pandas transformers datasets tiktoken`
 
 
----
+# Quick Start: Train a GPT-2 model on rap lyrics
 
-## Model Details
 
-- **Base Model**: GPT-2 (774M parameters)
-- **Dataset**: ~163,000 cleaned rap lyrics (sourced and filtered from Genius and other sources)
-- **Tokenization**: Hugging Face GPT-2 tokenizer with Byte-Pair Encoding (BPE)
+## 1. Prepare the Dataset
+
+First, download the dataset 'Lyrics_Data' (~11MB) text file:
+
+
+`python data/Lyrics_Data`
+
+## 2. Train the GPT-2 model.
+If you have access to a GPU, you can start training by running train.py with the appropriate hyperparameters.
+By default, the script uses:
+A batch size of 8
+200 training steps, which corresponds to approximately 4 epochs
+Training takes around ~3hrs on AWS g4dn.xlarge
+You may need to adjust these settings depending on your available GPU memory and dataset size.
+`python train.py`
+
+No GPU?
+You can still train the model using a cloud-based GPU instance from providers like AWS EC2, Lambda Labs, or Paperspace.
+
+Model will be saved in Models/GPT2_Final
+
+### Model Details
+
+- **Base Model**: GPT-2 (124M parameters)
+- **Dataset**: ~17,000 cleaned rap songs (sourced and filtered from Genius.com)
+- **Tokenization**: Tiktoken
 
 ### Training Configuration
 
-- **Optimizer**: AdamW
-- **Epochs**: *[Your value here]*
-- **Batch Size**: *[Your value here]*
+- **Optimizer**: AdamW with cosine decay
+- **Epochs**: 4
+- **Batch Size**: 8
 - **Loss Function**: CrossEntropyLoss
-- **Hardware**: Trained on NVIDIA RTX 4080 and AWS EC2
+- **Hardware**: Trained on NVIDIA RTX 4080 and AWS EC2 (g4dn.xlarge)
 
 
+## 3. Generate outputs.
+Run generate script after training is complete. 
+Modify the prompt (which will be the start of your rap verse).
+Modify number of sequences and max tokens
+Defaults to: 
+1 sequence with 100 tokens
+`python generate.py`
 
-### Output Format
+### Example Outputs
+**Prompt**: `"Feels so empty without me"`  
+**Output**: `"Feels so empty without me
+It feels so empty without me i feel like nothing feels so real
+i feel like nothing feels so real so when i see you i know you're mine
+so when i see you i know you're mine"`
+---
 
-- Generates raw text with **one bar per line**, mimicking natural rap structure
 
-
-## 🎤 Example Outputs
-
-**Prompt**: `"Stackin' paper like a CEO"`  
-**Output**: `"Stackin' paper like a CEO
-Got the hustle, never movin' slow
-Flippin' flows like a domino
-Bars so sick, they overdose"`
+## 4. Finetuning.
+To fine-tune the model efficiently, you can use LoRA (Low-Rank Adaptation) by running:
+`python finetune.py`
+You can use lyrics data with an artist of your choice in a .txt file
+Modify the data in the """Load and tokenize dataset""" section
+LoRA significantly reduces the number of trainable parameters by injecting low-rank adapters into the model's architecture. This method updates only about 1.02% of the total parameters, making training faster and more memory-efficient—especially useful on limited hardware.
 
 ---
 
-## API Usage
+## 5. Evaluation
 
-### Endpoint
+To assess the quality and relevance of generated rap lyrics, use a DistilBERT-based classifier model and cosine similarity metrics.
 
-`POST /generate`
+### Evaluation Method
+
+1. **Embedding Generation**  
+   Each generated lyric is embedded using a pre-trained DistilBERT model (e.g., `distilbert-base-uncased`) to obtain a semantic vector representation.
+
+2. **Reference Comparison**  
+   Generated lyrics are compared against a set of real rap lyric embeddings from the training dataset or manually curated reference lyrics.
+
+3. **Cosine Similarity**  
+   We compute the cosine similarity between generated lyrics and reference lyrics:
+
+   \[
+   \text{cosine\_similarity}(A, B) = \frac{A \cdot B}{\|A\| \|B\|}
+   \]
+
+   Higher scores indicate greater semantic alignment with real-world rap lyric style.
+
+4. **Thresholding / Labeling (Optional)**  
+   Optionally, the classifier can be fine-tuned to distinguish between “authentic-style” and “off-style” outputs, assigning a quality label or confidence score to each generation.
+
+### Example Result
+
+| Prompt                          | Cosine Similarity | Comment                   |
+|---------------------------------|-------------------|---------------------------|
+| `"Chasin' dreams in the rain"` | 0.82              | Strong stylistic match    |
+| `"I love data science"`        | 0.48              | Off-topic / unnatural     |
+| `"Diamonds dancin' in the sun"`| 0.86              | Excellent stylistic match |
+
 
 ---
 
-### Request Body
+## 6. Deployment
+rapGPT consists of a **FastAPI backend** and a **React/Next.js frontend**. You can deploy them together or separately depending on your setup (local machine, EC2, Docker, etc.).
+Please refer to the repository below
 
-```json
-{
-  "prompt": "Feels so empty wihtout me",
-  "temperature": 0.9,
-  "top_k": 50,
-  "top_p": 0.95,
-  "max_tokens": 80
-}
+- [backend](https://github.com/daniellee6925/rapGPT_backend])
+- [frontend](https://github.com/daniellee6925/rapGPT_frontend])
 
-### Response
-{
-  "generated_text": "I'm on the grind every day\nStackin' my chips while I pave the way..."
-}
-
+---
 ## Limitations
 
 - May produce inappropriate outputs  
 - Not conditioned on rhythm or beat structure  
 - Limited artist-style (Eminem-Only)
-
 
 ---
 
@@ -91,16 +145,15 @@ Bars so sick, they overdose"`
 - Add mutliple artist-styles with fine-tuning
 
 
-
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- 🤗 Hugging Face Transformers  
-- 🧠 PyTorch  
-- 🎶 Genius.com for dataset inspiration  
-- 🧱 OpenAI GPT-2 architecture  
-- 💻 React/Next.js frontend community  
+- Hugging Face Transformers  
+- PyTorch  
+- Genius.com for lyrics dataset 
+- OpenAI GPT-2 architecture  
+- React/Next.js frontend  
 
 ---
 
