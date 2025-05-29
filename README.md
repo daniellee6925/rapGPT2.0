@@ -40,14 +40,12 @@ If you have access to a GPU, you can start training by running train.py with the
 
 By default, the script uses:
 A batch size of 8 and 200 training steps, which corresponds to approximately 4 epochs. You may need to adjust these settings depending on your available GPU memory and dataset size.
-
-Training takes around ~2hrs on RXT 4080.
+- Training takes around ~2hrs on RXT 4080.
 
 **No GPU?**
 
 You can still train the model using a cloud-based GPU instance from providers like AWS EC2, Lambda Labs, or Paperspace.
-
-Training takes around ~3hrs on AWS g4dn.xlarge.
+- Training takes around ~3hrs on AWS g4dn.xlarge.
 
 Model will be saved in Models/GPT2_Final
 
@@ -78,11 +76,16 @@ Defaults to:
 
 ### Example Outputs
 
-**Prompt**: "Feels so empty without me"
-**Output**: "Feels so empty without me
+**Prompt**: "Feels so empty without me"  
+
+**Output**: "Feels so empty without me 
+
 It feels so empty without me i feel like nothing feels so real
+
 i feel like nothing feels so real so when i see you i know you're mine
+
 so when i see you i know you're mine"
+
 ---
 
 
