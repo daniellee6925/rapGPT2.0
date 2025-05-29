@@ -35,15 +35,18 @@ First, download the dataset 'Lyrics_Data' (~11MB) text file:
 
 ## 2. Train the GPT-2 model.
 If you have access to a GPU, you can start training by running train.py with the appropriate hyperparameters.
-By default, the script uses:
-A batch size of 8
-200 training steps, which corresponds to approximately 4 epochs
-Training takes around ~3hrs on AWS g4dn.xlarge
-You may need to adjust these settings depending on your available GPU memory and dataset size.
+
 `python train.py`
 
+By default, the script uses:
+A batch size of 8 and 200 training steps, which corresponds to approximately 4 epochs. You may need to adjust these settings depending on your available GPU memory and dataset size.
+
+Training takes around ~2hrs on RXT 4080.
+
 No GPU?
+
 You can still train the model using a cloud-based GPU instance from providers like AWS EC2, Lambda Labs, or Paperspace.
+Training takes around ~3hrs on AWS g4dn.xlarge.
 
 Model will be saved in Models/GPT2_Final
 
@@ -66,24 +69,28 @@ Model will be saved in Models/GPT2_Final
 Run generate script after training is complete. 
 Modify the prompt (which will be the start of your rap verse).
 Modify number of sequences and max tokens
+
 Defaults to: 
 1 sequence with 100 tokens
+
 `python generate.py`
 
 ### Example Outputs
-**Prompt**: `"Feels so empty without me"`  
-**Output**: `"Feels so empty without me
+**Prompt**: "Feels so empty without me"
+**Output**: "Feels so empty without me
 It feels so empty without me i feel like nothing feels so real
 i feel like nothing feels so real so when i see you i know you're mine
-so when i see you i know you're mine"`
+so when i see you i know you're mine"
 ---
 
 
 ## 4. Finetuning.
 To fine-tune the model efficiently, you can use LoRA (Low-Rank Adaptation) by running:
+
 `python finetune.py`
 You can use lyrics data with an artist of your choice in a .txt file
 Modify the data in the """Load and tokenize dataset""" section
+
 LoRA significantly reduces the number of trainable parameters by injecting low-rank adapters into the model's architecture. This method updates only about 1.02% of the total parameters, making training faster and more memory-efficient—especially useful on limited hardware.
 
 ---
@@ -101,12 +108,7 @@ To assess the quality and relevance of generated rap lyrics, use a DistilBERT-ba
    Generated lyrics are compared against a set of real rap lyric embeddings from the training dataset or manually curated reference lyrics.
 
 3. **Cosine Similarity**  
-   We compute the cosine similarity between generated lyrics and reference lyrics:
-
-   \[
-   \text{cosine\_similarity}(A, B) = \frac{A \cdot B}{\|A\| \|B\|}
-   \]
-
+   Compute the cosine similarity between generated lyrics and reference lyrics:
    Higher scores indicate greater semantic alignment with real-world rap lyric style.
 
 4. **Thresholding / Labeling (Optional)**  
@@ -125,6 +127,7 @@ To assess the quality and relevance of generated rap lyrics, use a DistilBERT-ba
 
 ## 6. Deployment
 rapGPT consists of a **FastAPI backend** and a **React/Next.js frontend**. You can deploy them together or separately depending on your setup (local machine, EC2, Docker, etc.).
+
 Please refer to the repository below
 
 - [backend](https://github.com/daniellee6925/rapGPT_backend])
@@ -165,5 +168,5 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 
 ## Contact
 
-Questions, feedback, or collab ideas? Reach out: [you@example.com](mailto:you@example.com)
+Questions, feedback, or collab ideas? Reach out: [daniellee6925@gmail.com](mailto:daniellee6925@gmail.com)
 
