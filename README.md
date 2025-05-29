@@ -43,9 +43,10 @@ A batch size of 8 and 200 training steps, which corresponds to approximately 4 e
 
 Training takes around ~2hrs on RXT 4080.
 
-No GPU?
+**No GPU?**
 
 You can still train the model using a cloud-based GPU instance from providers like AWS EC2, Lambda Labs, or Paperspace.
+
 Training takes around ~3hrs on AWS g4dn.xlarge.
 
 Model will be saved in Models/GPT2_Final
@@ -76,6 +77,7 @@ Defaults to:
 `python generate.py`
 
 ### Example Outputs
+
 **Prompt**: "Feels so empty without me"
 **Output**: "Feels so empty without me
 It feels so empty without me i feel like nothing feels so real
