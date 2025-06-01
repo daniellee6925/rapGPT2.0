@@ -28,7 +28,7 @@ Install the required dependencies using pip:
 
 ## 1. Prepare the Dataset
 
-First, download the dataset 'Lyrics_Data' (~11MB) text file:
+First, download the dataset 'Lyrics_Data.zip' (~24MB) text file:
 
 
 `python data/Lyrics_Data`
