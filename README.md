@@ -4,6 +4,8 @@ RapGPT is a pre-trained & fine-tuned GPT-2 model designed to generate original r
 
 If you'd like to try the final product, you can access it here: [www.eminemgpt.com](www.eminemgpt.com])
 
+If you'd like to read a more detailed descripotion of the project, you can access it here: [jeonghwandaniellee.com/rapgpt](https://www.jeonghwandaniellee.com/rapgpt)
+
 
 ---
 
@@ -40,7 +42,7 @@ If you have access to a GPU, you can start training by running train.py with the
 
 By default, the script uses:
 A batch size of 8 and 200 training steps, which corresponds to approximately 4 epochs. You may need to adjust these settings depending on your available GPU memory and dataset size.
-- Training takes around ~2hrs on RXT 4080.
+- Training takes around ~2hrs on RTX 4080.
 
 **No GPU?**
 
@@ -133,6 +135,7 @@ To assess the quality and relevance of generated rap lyrics, use a DistilBERT-ba
 ## 6. Deployment
 rapGPT consists of a **FastAPI backend** and a **React/Next.js frontend**. You can deploy them together or separately depending on your setup (local machine, EC2, Docker, etc.).
 
+Currently, backend is hosted on AWS EC2 c5.large (CPU-only)
 Please refer to the repository below
 
 - [backend](https://github.com/daniellee6925/rapGPT_backend])
